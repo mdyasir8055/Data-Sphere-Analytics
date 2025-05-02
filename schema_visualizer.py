@@ -3,8 +3,11 @@ import pandas as pd
 import networkx as nx
 import matplotlib.pyplot as plt
 import io
+import plotly.graph_objects as go
 import base64
+import streamlit.components.v1 as components
 import graphviz
+import re
 from typing import Dict, Any, List
 
 class SchemaVisualizer:
@@ -83,67 +86,47 @@ class SchemaVisualizer:
                     else:
                         st.info("No fields found for this collection.")
     
+
+
     def display_er_diagram(self, schema):
-        """Display database schema as an ER diagram"""
         if "tables" not in schema:
             st.info("ER diagram visualization is only available for SQL-based databases.")
             return
-        
-        # Create graph for ER diagram
-        G = nx.DiGraph()
-        
-        # Add nodes (tables)
-        for table_name in schema["tables"].keys():
-            G.add_node(table_name)
-        
-        # Add edges (relationships)
+
+        mermaid_code = "erDiagram\n"
+
+        # Build table definitions
         for table_name, table_info in schema["tables"].items():
-            for fk in table_info["foreign_keys"]:
-                G.add_edge(
-                    table_name, 
-                    fk["referred_table"],
-                    label=f"{', '.join(fk['constrained_columns'])} -> {', '.join(fk['referred_columns'])}"
-                )
-        
-        # Generate the ER diagram
-        if len(G.nodes) > 0:
-            fig, ax = plt.subplots(figsize=(10, 8))
-            pos = nx.spring_layout(G, seed=42)
-            
-            # Draw nodes
-            nx.draw_networkx_nodes(G, pos, node_size=3000, node_color="lightblue", ax=ax)
-            
-            # Draw edges
-            nx.draw_networkx_edges(G, pos, width=1.5, arrowsize=20, ax=ax)
-            
-            # Draw node labels
-            nx.draw_networkx_labels(G, pos, font_size=12, ax=ax)
-            
-            # Draw edge labels
-            edge_labels = {(u, v): d["label"] for u, v, d in G.edges(data=True)}
-            nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels, font_size=8, ax=ax)
-            
-            plt.title("Entity Relationship Diagram")
-            plt.axis("off")
-            
-            # Display the ER diagram in Streamlit
-            st.pyplot(fig)
-            
-            # Add download button for the diagram
-            buf = io.BytesIO()
-            fig.savefig(buf, format="png", bbox_inches="tight")
-            buf.seek(0)
-            
-            # Provide download button
-            btn = st.download_button(
-                label="Download ER Diagram",
-                data=buf,
-                file_name="er_diagram.png",
-                mime="image/png"
-            )
-        else:
-            st.info("No tables found to generate ER diagram.")
-            
+            mermaid_code += f"    {table_name} {{\n"
+            for column in table_info.get("columns", []):
+                datatype = re.sub(r"\(.*?\)", "", column.get("type", "string"))  # Simplify datatype
+                key = "PK" if column.get("primary_key") else ""
+                mermaid_code += f"        {datatype} {column['name']} {key}\n"
+            mermaid_code += "    }\n"
+
+        # Build relationships
+        # Build relationships
+        for table_name, table_info in schema["tables"].items():
+            for fk in table_info.get("foreign_keys", []):
+                referred_table = fk["referred_table"]
+                mermaid_code += f"    {table_name} }}o--|| {referred_table} : FK\n"
+
+
+        # Embed Mermaid diagram in HTML
+        mermaid_html = f"""
+        <div class="mermaid">
+        {mermaid_code}
+        </div>
+        <script type="module">
+            import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs";
+            mermaid.initialize({{ startOnLoad: true }});
+        </script>
+        """
+
+        # Render Mermaid diagram
+        st.components.v1.html(mermaid_html, height=600, scrolling=True)
+
+                
     def display_graphviz_er_diagram(self, schema: Dict[str, Any]):
         """Display database schema as an ER diagram using Graphviz"""
         if "tables" not in schema:
