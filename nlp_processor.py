@@ -518,7 +518,7 @@ class NLPProcessor:
                     """, unsafe_allow_html=True)
                 else:
                     st.markdown(f"""
-                    <div style="background-color: #f0f0f0; padding: 10px; border-radius: 5px; margin-bottom: 10px;">
+                    <div style="background-color: #1e1e1e; color: white; padding: 10px; border-radius: 5px; margin-bottom: 10px;">
                         <strong>Assistant:</strong> {message["content"]}
                     </div>
                     """, unsafe_allow_html=True)
@@ -618,7 +618,7 @@ class NLPProcessor:
                 <div style="background-color: #e6f7ff; padding: 10px; border-radius: 5px; margin-bottom: 10px;">
                     <strong>Question:</strong> {qa["question"]}
                 </div>
-                <div style="background-color: #f0f0f0; padding: 10px; border-radius: 5px; margin-bottom: 20px;">
+                <div style="background-color: #1e1e1e; color: white; padding: 10px; border-radius: 5px; margin-bottom: 20px;">
                     <strong>Answer:</strong> {qa["answer"]}
                 </div>
                 """, unsafe_allow_html=True)

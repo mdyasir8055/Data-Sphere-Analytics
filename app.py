@@ -25,6 +25,39 @@ st.set_page_config(
     layout="wide"
 )
 
+# Custom CSS for dark theme notifications
+st.markdown("""
+<style>
+    /* Dark theme for info messages */
+    .stAlert.st-info {
+        background-color: #1e1e1e;
+        color: white;
+        border: 1px solid #2c2c2c;
+    }
+    
+    /* Dark theme for success messages */
+    .stAlert.st-success {
+        background-color: #1e1e1e;
+        color: white;
+        border: 1px solid #2c2c2c;
+    }
+    
+    /* Dark theme for warning messages */
+    .stAlert.st-warning {
+        background-color: #1e1e1e;
+        color: white;
+        border: 1px solid #2c2c2c;
+    }
+    
+    /* Dark theme for error messages */
+    .stAlert.st-error {
+        background-color: #1e1e1e;
+        color: white;
+        border: 1px solid #2c2c2c;
+    }
+</style>
+""", unsafe_allow_html=True)
+
 # Initialize session state
 initialize_session_state()
 
@@ -328,8 +361,8 @@ if hasattr(user_management, "get_current_user") and user_management.get_current_
         if unread_count > 0:
             st.sidebar.markdown(
                 f"""
-                <div style="background-color: #f0f7ff; padding: 8px; border-radius: 5px; margin-top: 10px;">
-                    <span style="color: #1e88e5; font-weight: bold;">
+                <div style="background-color: #1e1e1e; padding: 8px; border-radius: 5px; margin-top: 10px;">
+                    <span style="color: white; font-weight: bold;">
                         {unread_count} unread notification{'s' if unread_count > 1 else ''}
                     </span>
                 </div>
