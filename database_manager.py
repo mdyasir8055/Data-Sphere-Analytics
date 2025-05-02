@@ -560,6 +560,24 @@ class DatabaseManager:
             if db_type in ["PostgreSQL", "MySQL", "SQLite"]:
                 engine = create_engine(connection_string)
                 
+                # Handle SQLite-specific queries
+                if db_type == "SQLite" and "INFORMATION_SCHEMA.TABLES" in query:
+                    # For SQLite, we need to use sqlite_master instead of INFORMATION_SCHEMA.TABLES
+                    if "SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES" in query:
+                        # Replace with SQLite equivalent
+                        modified_query = "SELECT COUNT(*) FROM sqlite_master WHERE type='table'"
+                        with engine.connect() as conn:
+                            result = pd.read_sql(modified_query, conn)
+                            st.session_state.query_results = result
+                            return result
+                    else:
+                        # For other INFORMATION_SCHEMA queries, adapt accordingly
+                        modified_query = query.replace("INFORMATION_SCHEMA.TABLES", "sqlite_master WHERE type='table'")
+                        with engine.connect() as conn:
+                            result = pd.read_sql(modified_query, conn)
+                            st.session_state.query_results = result
+                            return result
+                
                 with engine.connect() as conn:
                     # Check if the query returns results
                     if query.strip().lower().startswith(("select", "show", "describe", "explain")):

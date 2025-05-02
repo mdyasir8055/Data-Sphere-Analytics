@@ -366,6 +366,18 @@ class NLPProcessor:
     
     def _create_prompt(self, nl_query, schema_info):
         """Create a prompt for the language model"""
+        # Check if we're connected to SQLite
+        is_sqlite = False
+        if st.session_state.current_connection and st.session_state.current_connection["type"] == "SQLite":
+            is_sqlite = True
+            
+        # Define SQLite-specific instructions outside of f-strings to avoid backslash issues
+        sqlite_intro = "IMPORTANT: This is a SQLite database. Do not use INFORMATION_SCHEMA.TABLES in your query. Instead, use sqlite_master table to query metadata."
+        sqlite_tables_query = "- Instead of INFORMATION_SCHEMA.TABLES, use 'SELECT * FROM sqlite_master WHERE type=\"table\"'"
+        sqlite_columns_query = "- To get column information, use 'PRAGMA table_info(table_name)'"
+        sqlite_count_query = "- To count tables, use 'SELECT COUNT(*) FROM sqlite_master WHERE type=\"table\"'"
+        sqlite_section_header = "For SQLite metadata queries:"
+            
         if schema_info:
             prompt = f"""
             Database Schema:
@@ -373,16 +385,40 @@ class NLPProcessor:
             
             Natural Language Query: {nl_query}
             
+            {sqlite_intro if is_sqlite else ""}
+            
             Generate a SQL query that answers this question based on the database schema provided.
             Return only the SQL query without any explanations or markdown formatting.
             """
+            
+            # Add SQLite-specific instructions if needed
+            if is_sqlite:
+                prompt += f"""
+                
+                {sqlite_section_header}
+                {sqlite_tables_query}
+                {sqlite_columns_query}
+                {sqlite_count_query}
+                """
         else:
             prompt = f"""
             Natural Language Query: {nl_query}
             
+            {sqlite_intro if is_sqlite else ""}
+            
             Generate a SQL query that answers this question.
             Return only the SQL query without any explanations or markdown formatting.
             """
+            
+            # Add SQLite-specific instructions if needed
+            if is_sqlite:
+                prompt += f"""
+                
+                {sqlite_section_header}
+                {sqlite_tables_query}
+                {sqlite_columns_query}
+                {sqlite_count_query}
+                """
         
         return prompt
     
