@@ -527,7 +527,9 @@ class UserManagement:
                 with col1:
                     # Edit role
                     if self._has_permission("user_management", "edit"):
-                        if st.button("Edit Role", key=f"edit_{selected_role}"):
+                        # Add a timestamp to make the key unique
+                        edit_key = f"edit_{selected_role}_{pd.Timestamp.now().strftime('%Y%m%d%H%M%S')}"
+                        if st.button("Edit Role", key=edit_key):
                             st.session_state.edit_role = selected_role
                             st.rerun()
                 
@@ -535,7 +537,9 @@ class UserManagement:
                     # Delete role
                     if self._has_permission("user_management", "delete"):
                         if selected_role != "admin":  # Prevent deleting admin role
-                            if st.button("Delete Role", key=f"delete_{selected_role}"):
+                            # Add a timestamp to make the key unique
+                            delete_key = f"delete_{selected_role}_{pd.Timestamp.now().strftime('%Y%m%d%H%M%S')}"
+                            if st.button("Delete Role", key=delete_key):
                                 # Check if any users have this role
                                 users_with_role = [username for username, user_data in st.session_state.users.items() 
                                                 if user_data["role"] == selected_role]
@@ -633,7 +637,9 @@ class UserManagement:
                                 
                                 st.rerun()
                     
-                    if st.button("Cancel Edit"):
+                    # Add a timestamp to make the key unique
+                    cancel_key = f"cancel_edit_{selected_role}_{pd.Timestamp.now().strftime('%Y%m%d%H%M%S')}"
+                    if st.button("Cancel Edit", key=cancel_key):
                         del st.session_state.edit_role
                         st.rerun()
     
