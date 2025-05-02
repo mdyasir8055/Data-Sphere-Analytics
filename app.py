@@ -16,6 +16,7 @@ from cloud_storage import CloudStorage
 from user_management import UserManagement
 from semantic_templates import SemanticTemplates
 from collaboration import Collaboration
+from data_storytelling import DataStorytelling
 
 # Page configuration
 st.set_page_config(
@@ -47,6 +48,7 @@ nav_option = st.sidebar.radio(
         "Semantic Layer",
         "Semantic Templates",
         "Advanced Visualization",
+        "Data Storytelling",
         "Enterprise Integration",
         "Cloud Storage",
         "Collaboration Hub",
@@ -79,10 +81,12 @@ cloud_storage = CloudStorage()
 user_management = UserManagement()
 semantic_templates = SemanticTemplates()
 collaboration = Collaboration()
+data_storytelling = DataStorytelling()
 
 # Make modules available in session state for cross-module access
 st.session_state.collaboration = collaboration
 st.session_state.user_management = user_management
+st.session_state.data_storytelling = data_storytelling
 
 # Home page
 if nav_option == "Home":
@@ -114,6 +118,9 @@ if nav_option == "Home":
     * Collaboration Hub with shared workspaces and version control
     * Comments and annotations on queries, models, and dashboards
     * Real-time notifications for team collaboration
+    * Advanced Data Storytelling with interactive presentations
+    * AI-generated narrative insights from your data
+    * Annotated visualizations with context and explanations
     
     Get started by navigating to the **Database Connections** section to set up your database connection.
     """)
@@ -234,6 +241,17 @@ elif nav_option == "Advanced Visualization":
         st.button("Go to Database Connections", on_click=lambda: st.session_state.update({"nav_option": "Database Connections"}))
     else:
         advanced_visualization.visualization_ui(db_manager)
+
+# Data Storytelling page
+elif nav_option == "Data Storytelling":
+    st.title("Advanced Data Storytelling")
+    
+    # Check if connected to a database
+    if not st.session_state.get("connected_db"):
+        st.warning("Please connect to a database first.")
+        st.button("Go to Database Connections", on_click=lambda: st.session_state.update({"nav_option": "Database Connections"}))
+    else:
+        data_storytelling.storytelling_ui(db_manager, advanced_visualization)
 
 # Enterprise Integration page
 elif nav_option == "Enterprise Integration":
