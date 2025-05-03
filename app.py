@@ -18,12 +18,23 @@ from semantic_templates import SemanticTemplates
 from collaboration import Collaboration
 from data_storytelling import DataStorytelling
 
-# Page configuration
-st.set_page_config(
-    page_title="DataSphere: Text-to-SQL Analytics Platform",
-    page_icon="🔍",
-    layout="wide"
-)
+# Check for full screen ER diagram route first
+is_full_screen = False
+if "view" in st.query_params and st.query_params["view"] == "full_screen_er_diagram":
+    # Set page config for full screen view
+    st.set_page_config(
+        page_title="Database Schema - Full Screen View",
+        layout="wide",
+        initial_sidebar_state="collapsed"
+    )
+    is_full_screen = True
+else:
+    # Regular page configuration
+    st.set_page_config(
+        page_title="DataSphere: Text-to-SQL Analytics Platform",
+        page_icon="🔍",
+        layout="wide"
+    )
 
 # Custom CSS for dark theme notifications
 st.markdown("""
@@ -63,6 +74,41 @@ initialize_session_state()
 
 # Load any saved session state
 load_session_state()
+
+# Handle full screen ER diagram route
+if is_full_screen:
+    if st.session_state.get("db_schema"):
+        # Add full screen specific styles
+        st.markdown("""
+        <style>
+            #MainMenu {visibility: hidden;}
+            header {visibility: hidden;}
+            footer {visibility: hidden;}
+            .block-container {padding-top: 0; padding-bottom: 0; max-width: 100% !important;}
+        </style>
+        """, unsafe_allow_html=True)
+        
+        # Add back button
+        st.markdown("""
+        <div style="margin: 20px;">
+            <a href="/" style="text-decoration: none; color: #4D7A97; display: flex; align-items: center; width: fit-content;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 5px;">
+                    <path d="M19 12H5M12 19l-7-7 7-7"/>
+                </svg>
+                Back to Dashboard
+            </a>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        schema_visualizer = SchemaVisualizer()
+        schema_visualizer.display_full_screen_er_diagram_content(st.session_state.db_schema)
+        st.stop()
+    else:
+        st.error("No database schema available. Please connect to a database first.")
+        if st.button("Go to Dashboard"):
+            st.query_params.clear()
+            st.rerun()
+        st.stop()
 
 # Sidebar navigation
 st.sidebar.title("DataSphere")
