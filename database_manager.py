@@ -32,6 +32,60 @@ class DatabaseManager:
         
         if "query_history" not in st.session_state:
             st.session_state.query_history = []
+            
+        if "available_databases" not in st.session_state:
+            st.session_state.available_databases = []
+            
+    def _clear_available_databases(self):
+        """Clear the list of available databases when changing database type"""
+        if "available_databases" in st.session_state:
+            st.session_state.available_databases = []
+            
+    def _get_available_databases(self, db_type, host, port, username, password):
+        """Get list of available databases for the given database type and credentials"""
+        try:
+            if db_type == "PostgreSQL":
+                # Connect to PostgreSQL server without specifying a database
+                temp_conn_string = f"postgresql://{username}:{password}@{host}:{port}/postgres"
+                engine = create_engine(temp_conn_string)
+                
+                # Query to list all databases
+                with engine.connect() as conn:
+                    result = conn.execute(sqlalchemy.text("SELECT datname FROM pg_database WHERE datistemplate = false;"))
+                    databases = [row[0] for row in result]
+                
+                return databases
+                
+            elif db_type == "MySQL":
+                # Connect to MySQL server without specifying a database
+                temp_conn_string = f"mysql+pymysql://{username}:{password}@{host}:{port}/"
+                engine = create_engine(temp_conn_string)
+                
+                # Query to list all databases
+                with engine.connect() as conn:
+                    result = conn.execute(sqlalchemy.text("SHOW DATABASES;"))
+                    databases = [row[0] for row in result]
+                
+                return databases
+                
+            elif db_type == "MongoDB":
+                # Connect to MongoDB server without specifying a database
+                if username and password:
+                    temp_conn_string = f"mongodb://{username}:{password}@{host}:{port}/"
+                else:
+                    temp_conn_string = f"mongodb://{host}:{port}/"
+                
+                client = pymongo.MongoClient(temp_conn_string)
+                
+                # List all databases
+                databases = client.list_database_names()
+                return databases
+                
+            return []
+            
+        except Exception as e:
+            st.error(f"Failed to list databases: {str(e)}")
+            return []
     
     def create_connection_ui(self):
         """Create UI for setting up database connections"""
@@ -56,25 +110,74 @@ class DatabaseManager:
         db_type = st.selectbox(
             "Database Type",
             ["PostgreSQL", "MySQL", "SQLite", "MongoDB"],
-            key="new_conn_type"
+            key="new_conn_type",
+            on_change=self._clear_available_databases
         )
         
         # Connection details based on database type
         if db_type == "PostgreSQL":
             host = st.text_input("Host", value=os.getenv("PGHOST", "localhost"), key="pg_host")
             port = st.text_input("Port", value=os.getenv("PGPORT", "5432"), key="pg_port")
-            database = st.text_input("Database", value=os.getenv("PGDATABASE", ""), key="pg_db")
             username = st.text_input("Username", value=os.getenv("PGUSER", ""), key="pg_user")
             password = st.text_input("Password", type="password", value=os.getenv("PGPASSWORD", ""), key="pg_pass")
+            
+            # Add a button to list available databases
+            if st.button("List Available Databases", key="list_pg_dbs_btn"):
+                databases = self._get_available_databases("PostgreSQL", host, port, username, password)
+                if databases:
+                    # Store in session state
+                    st.session_state.available_databases = databases
+                    st.success(f"Found {len(databases)} databases")
+            
+            # Show database selection if available
+            if "available_databases" in st.session_state and st.session_state.available_databases:
+                col1, col2 = st.columns([3, 1])
+                with col1:
+                    database = st.selectbox(
+                        "Select Database", 
+                        options=st.session_state.available_databases,
+                        key="pg_db"
+                    )
+                with col2:
+                    if st.button("Clear List", key="clear_pg_dbs_btn"):
+                        st.session_state.available_databases = []
+                        st.rerun()
+            else:
+                database = st.text_input("Database", value=os.getenv("PGDATABASE", ""), key="pg_db_input", 
+                                        help="Or click 'List Available Databases' to see all databases you can connect to")
             
             connection_string = f"postgresql://{username}:{password}@{host}:{port}/{database}"
             
         elif db_type == "MySQL":
             host = st.text_input("Host", value="localhost", key="mysql_host")
             port = st.text_input("Port", value="3306", key="mysql_port")
-            database = st.text_input("Database", key="mysql_db")
             username = st.text_input("Username", key="mysql_user")
             password = st.text_input("Password", type="password", key="mysql_pass")
+            
+            # Add a button to list available databases
+            if st.button("List Available Databases", key="list_mysql_dbs_btn"):
+                databases = self._get_available_databases("MySQL", host, port, username, password)
+                if databases:
+                    # Store in session state
+                    st.session_state.available_databases = databases
+                    st.success(f"Found {len(databases)} databases")
+            
+            # Show database selection if available
+            if "available_databases" in st.session_state and st.session_state.available_databases:
+                col1, col2 = st.columns([3, 1])
+                with col1:
+                    database = st.selectbox(
+                        "Select Database", 
+                        options=st.session_state.available_databases,
+                        key="mysql_db"
+                    )
+                with col2:
+                    if st.button("Clear List", key="clear_mysql_dbs_btn"):
+                        st.session_state.available_databases = []
+                        st.rerun()
+            else:
+                database = st.text_input("Database", key="mysql_db_input", 
+                                        help="Or click 'List Available Databases' to see all databases you can connect to")
             
             connection_string = f"mysql+pymysql://{username}:{password}@{host}:{port}/{database}"
             
@@ -85,15 +188,43 @@ class DatabaseManager:
         elif db_type == "MongoDB":
             host = st.text_input("Host", value="localhost", key="mongo_host")
             port = st.text_input("Port", value="27017", key="mongo_port")
-            database = st.text_input("Database", key="mongo_db")
             username = st.text_input("Username (optional)", key="mongo_user")
             password = st.text_input("Password (optional)", type="password", key="mongo_pass")
+            
+            # Add a button to list available databases
+            if st.button("List Available Databases", key="list_mongo_dbs_btn"):
+                databases = self._get_available_databases("MongoDB", host, port, username, password)
+                if databases:
+                    # Store in session state
+                    st.session_state.available_databases = databases
+                    st.success(f"Found {len(databases)} databases")
+            
+            # Show database selection if available
+            if "available_databases" in st.session_state and st.session_state.available_databases:
+                col1, col2 = st.columns([3, 1])
+                with col1:
+                    database = st.selectbox(
+                        "Select Database", 
+                        options=st.session_state.available_databases,
+                        key="mongo_db"
+                    )
+                with col2:
+                    if st.button("Clear List", key="clear_mongo_dbs_btn"):
+                        st.session_state.available_databases = []
+                        st.rerun()
+            else:
+                database = st.text_input("Database", key="mongo_db_input", 
+                                        help="Or click 'List Available Databases' to see all databases you can connect to")
             
             if username and password:
                 connection_string = f"mongodb://{username}:{password}@{host}:{port}/{database}"
             else:
                 connection_string = f"mongodb://{host}:{port}/{database}"
         
+        # Info message about listing databases
+        if db_type in ["PostgreSQL", "MySQL", "MongoDB"] and "available_databases" not in st.session_state or not st.session_state.available_databases:
+            st.info("💡 You can click 'List Available Databases' to see and select from all databases you have access to.")
+            
         # Save connection button
         if st.button("Test and Save Connection", key="test_and_save_conn_btn"):
             if not connection_name:
