@@ -4,7 +4,7 @@ import requests
 import json
 import re
 import pandas as pd
-import google.generativeai as genai
+from google import genai
 from groq import Groq
 
 class NLPProcessor:
@@ -50,10 +50,11 @@ class NLPProcessor:
             
         # Update Gemini client
         if st.session_state.gemini_api_key:
-            genai.configure(api_key=st.session_state.gemini_api_key)
-            self.gemini_model = genai.GenerativeModel('gemini-pro')
+            # Initialize the new Gemini client
+            self.gemini_client = genai.Client(api_key=st.session_state.gemini_api_key)
+            # We'll use the model name directly in the generate_content calls
         else:
-            self.gemini_model = None
+            self.gemini_client = None
     
     def text_to_sql_ui(self, db_manager):
         """UI for converting natural language to SQL with follow-up chat"""
@@ -347,15 +348,18 @@ class NLPProcessor:
     
     def _generate_sql_gemini(self, nl_query, schema_info):
         """Generate SQL query using Gemini API"""
-        if not self.gemini_model:
+        if not self.gemini_client:
             st.error("Gemini API key is not configured. Please enter your API key in the configuration section.")
             return None
         
         prompt = self._create_prompt(nl_query, schema_info)
         
         try:
-            # Use Gemini API to generate SQL
-            response = self.gemini_model.generate_content(prompt)
+            # Use Gemini API to generate SQL with the new client format
+            response = self.gemini_client.models.generate_content(
+                model="gemini-2.0-flash",
+                contents=prompt
+            )
             
             # Extract the SQL query from the response
             sql = self._extract_sql_from_response(response.text)
@@ -712,7 +716,7 @@ class NLPProcessor:
             
     def _generate_follow_up_response_gemini(self, follow_up, conversation_history, schema_info):
         """Generate a response to a follow-up question using Gemini API"""
-        if not self.gemini_model:
+        if not self.gemini_client:
             return None
             
         # Construct the prompt
@@ -734,7 +738,10 @@ class NLPProcessor:
         """
         
         try:
-            response = self.gemini_model.generate_content(prompt)
+            response = self.gemini_client.models.generate_content(
+                model="gemini-2.0-flash",
+                contents=prompt
+            )
             return response.text.strip()
         except Exception as e:
             st.error(f"Error with Gemini API: {str(e)}")
@@ -778,7 +785,7 @@ class NLPProcessor:
             
     def _generate_db_answer_gemini(self, question, schema_info):
         """Generate an answer to a database question using Gemini API"""
-        if not self.gemini_model:
+        if not self.gemini_client:
             return None
             
         # Construct the prompt
@@ -796,7 +803,10 @@ class NLPProcessor:
         """
         
         try:
-            response = self.gemini_model.generate_content(prompt)
+            response = self.gemini_client.models.generate_content(
+                model="gemini-2.0-flash",
+                contents=prompt
+            )
             return response.text.strip()
         except Exception as e:
             st.error(f"Error with Gemini API: {str(e)}")
