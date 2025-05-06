@@ -25,6 +25,12 @@ class ExternalDataSources:
     def external_data_ui(self, db_manager=None):
         """Main UI for external data sources integration"""
         
+        # Ensure external_data_sources is initialized as a list
+        if "external_data_sources" not in st.session_state:
+            st.session_state.external_data_sources = []
+        elif not isinstance(st.session_state.external_data_sources, list):
+            st.session_state.external_data_sources = []
+        
         tabs = st.tabs(["API Integration", "Web Scraping", "Saved Data Sources"])
         
         with tabs[0]:
@@ -407,6 +413,12 @@ class ExternalDataSources:
     def saved_data_sources_ui(self, db_manager=None):
         """UI for managing saved data sources"""
         st.subheader("Saved Data Sources")
+        
+        # Ensure external_data_sources is initialized as a list
+        if "external_data_sources" not in st.session_state:
+            st.session_state.external_data_sources = []
+        elif not isinstance(st.session_state.external_data_sources, list):
+            st.session_state.external_data_sources = []
         
         if not st.session_state.external_data_sources:
             st.info("No saved data sources yet. Use the API Integration or Web Scraping tabs to create data sources.")
