@@ -40,6 +40,15 @@ pytz>=2023.3             # Timezone support
 openpyxl>=3.1.2          # Excel file support
 pillow>=10.1.0           # Image processing
 
+# Mobile integration
+streamlit-components-v1>=1.0.0  # Custom components
+jinja2>=3.1.2            # HTML templating for mobile reports
+
+# Web scraping and API integration
+beautifulsoup4>=4.12.2   # HTML parsing
+qrcode>=7.4.2            # QR code generation
+lxml>=4.9.3              # XML/HTML processing
+
 # Development dependencies (optional)
 # pytest>=7.4.0
 # black>=23.7.0

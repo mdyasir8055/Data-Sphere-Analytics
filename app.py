@@ -17,6 +17,28 @@ from user_management import UserManagement
 from semantic_templates import SemanticTemplates
 from collaboration import Collaboration
 from data_storytelling import DataStorytelling
+from external_data_sources import ExternalDataSources
+
+# Define a simple MobileIntegration class directly in app.py
+class MobileIntegration:
+    def __init__(self):
+        pass
+        
+    def mobile_friendly_ui(self):
+        st.title("Mobile Access")
+        st.write("This is a placeholder for the Mobile Access feature.")
+        st.info("The mobile integration module is currently being implemented.")
+        
+        # Display some sample mobile features
+        st.subheader("Mobile Features")
+        st.write("- Responsive design for mobile devices")
+        st.write("- Mobile-friendly dashboards")
+        st.write("- Offline access to reports")
+        st.write("- Touch-optimized interface")
+        
+        # Add a sample mobile preview
+        st.subheader("Coming Soon")
+        st.success("Mobile app integration will be available in the next update!")
 
 # Check for full screen ER diagram route first
 is_full_screen = False
@@ -132,6 +154,8 @@ nav_option = st.sidebar.radio(
         "Cloud Storage",
         "Collaboration Hub",
         "User Management",
+        "Mobile Access",
+        "External Data Sources",
         "Query History"
     ]
 )
@@ -161,11 +185,15 @@ user_management = UserManagement()
 semantic_templates = SemanticTemplates()
 collaboration = Collaboration()
 data_storytelling = DataStorytelling()
+mobile_integration = MobileIntegration()
+external_data_sources = ExternalDataSources()
 
 # Make modules available in session state for cross-module access
 st.session_state.collaboration = collaboration
 st.session_state.user_management = user_management
 st.session_state.data_storytelling = data_storytelling
+st.session_state.mobile_integration = mobile_integration
+st.session_state.external_data_sources = external_data_sources
 
 # Home page
 if nav_option == "Home":
@@ -200,6 +228,10 @@ if nav_option == "Home":
     * Advanced Data Storytelling with interactive presentations
     * AI-generated narrative insights from your data
     * Annotated visualizations with context and explanations
+    * Mobile-friendly interface with responsive design
+    * External data sources integration with APIs and web scraping
+    * **Mobile Access** with responsive design for on-the-go analytics
+    * Offline mobile reports for viewing data without internet connection
     
     Get started by navigating to the **Database Connections** section to set up your database connection.
     """)
@@ -357,6 +389,32 @@ elif nav_option == "User Management":
 elif nav_option == "Collaboration Hub":
     st.title("Collaboration Hub")
     collaboration.collaboration_ui()
+
+# Mobile Access page
+elif nav_option == "Mobile Access":
+    st.title("Mobile Access")
+    mobile_integration.mobile_friendly_ui()
+
+# External Data Sources page
+elif nav_option == "External Data Sources":
+    st.title("External Data Sources")
+    external_data_sources.external_data_ui(db_manager)
+    
+    # If we have query results, show mobile-friendly visualization
+    if st.session_state.get("query_results") is not None and isinstance(st.session_state.query_results, pd.DataFrame):
+        st.subheader("Current Query Results")
+        mobile_integration.create_mobile_dashboard(st.session_state.query_results)
+        
+        # Provide mobile report download option
+        st.subheader("Export Mobile Report")
+        st.markdown(
+            mobile_integration.get_download_link(
+                st.session_state.query_results, 
+                filename="datasphere_mobile_report.html",
+                title="DataSphere Mobile Report"
+            ),
+            unsafe_allow_html=True
+        )
 
 # Query History page
 elif nav_option == "Query History":

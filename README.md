@@ -15,6 +15,9 @@ DataSphere Analytics is a text-to-SQL platform that converts natural language to
 - **Semantic Layer**: Create business-friendly data models
 - **Collaboration**: Share queries and dashboards with team members
 - **Cloud Storage**: Integration with AWS S3, Google Cloud Storage, and Azure
+- **Mobile Integration**: Access your data on the go with a responsive mobile interface
+- **External Data Sources**: Import data from APIs and web scraping directly into your database
+- **Mobile Access**: Responsive design for accessing analytics on mobile devices with offline reports
 
 ## Setup Instructions
 
