@@ -4,7 +4,7 @@ import requests
 import json
 import re
 import pandas as pd
-from google import genai
+import google.generativeai as genai
 from groq import Groq
 
 class NLPProcessor:
