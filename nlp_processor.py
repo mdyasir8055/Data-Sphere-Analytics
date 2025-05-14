@@ -4,7 +4,7 @@ import requests
 import json
 import re
 import pandas as pd
-import google.generativeai as genai
+import google.generativeai as gen_ai
 from groq import Groq
 
 class NLPProcessor:
@@ -51,7 +51,7 @@ class NLPProcessor:
         # Update Gemini client
         if st.session_state.gemini_api_key:
             # Initialize the new Gemini client
-            self.gemini_client = genai.Client(api_key=st.session_state.gemini_api_key)
+            self.gemini_client = gen_ai.Client(api_key=st.session_state.gemini_api_key)
             # We'll use the model name directly in the generate_content calls
         else:
             self.gemini_client = None
